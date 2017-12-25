@@ -1,3 +1,6 @@
+
+.docker/mongodb/data/*
+.docker/redis/data/*
 # Logs
 logs
 *.log

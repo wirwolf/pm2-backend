@@ -1,0 +1,40 @@
+version: "3.3"
+services:
+  app:
+    container_name: ${COMPOSE_PROJECT_NAME}_app
+    image: node:6-alpine
+    build:
+      context: .
+      dockerfile: .docker/app/Dockerfile
+    volumes:
+      - ./app:/source
+    environment:
+      APP_PORT: ${APIDOC_PORT}
+
+
+  mongodb:
+    container_name: ${COMPOSE_PROJECT_NAME}_mongodb
+    image: mongo:3.4.6
+    command: mongod --config /etc/mongod.conf
+    volumes:
+      - ./.docker/mongodb/config/mongod.conf:/etc/mongod.conf
+      - ./.docker/mongodb/initdb:/docker-entrypoint-initdb.d/
+      - ./.docker/mongodb/data:/data/db
+      - ./.docker/mongodb/logs:/var/log/mongodb
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - "${MONGO_PORT}:27017"
+
+  redis:
+    container_name: ${COMPOSE_PROJECT_NAME}_redis
+    image: redis
+    build:
+        context: .
+        dockerfile: .docker/redis/Dockerfile
+    volumes:
+      - ./.docker/redis/data:/data
+    ports:
+      - "${REDIS_PORT}:6379"
