@@ -1,11 +1,15 @@
+require('dotenv').load();
+
+
 const debug = require('debug')('app');
 
 var axon = require('axon');
 var sock = axon.socket('sub');
 var nssocket = require('nssocket');
-var MongoClient = require('mongodb').MongoClient;
+var ProcessModel = require('../src/Config/Models/Process');
+var actions = require('../src/Actions');
 
-var url = 'mongodb://127.0.0.1:27017/myproject';
+/*var url = 'mongodb://'+ MONGO_HOST +':27017/myproject';
 
 var collection = null;
 // Use connect method to connect to the server
@@ -18,7 +22,7 @@ MongoClient.connect(url, function(err, db) {
     collection = db.collection('documents');
 });
 
-
+*/
 
 
 sock.on('message', function(msg){
@@ -32,9 +36,15 @@ sock.on('message', function(msg){
         /*collection.insert(data.data, function (err, result) {
             console.log('Insert into mongo')
         });*/
-        //console.log(data.data);
+        debug(msg);
         //console.log(data.data.monitoring);
-        console.dir(data.data.status.data);
+        //console.dir(data.data.status.data);
+        //console.dir(ProcessModel);
+
+
+        /*ProcessModel.create({}).then(function(created){
+            console.log(created);
+        });*/
         //status.data.process[3]
     }
 
@@ -83,17 +93,12 @@ const ACTION_PM2_RESTART = 'restart';
 
 
 
+
 function action() {
     setInterval(function () {
         //console.log('!');
-        server.emit('cmd', {
-            //_type : 'trigger:action',
-            _type : 'trigger:pm2:action',
-            parameters  : {"name":"logrotate"},
-            //action_name : 'refresh:db'
-            method_name : ACTION_PM2_RESTART
-        });
-
+       //"logrotate"
+        sendPM2Command("logrotate", actions.ACTION_PM2_RESTART)
 
 
         /*_server.emit('cmd', {
@@ -105,9 +110,24 @@ function action() {
 
 }
 
-function sendPM2Command(name, parameters) {
-
+function sendPM2Command(name, action, parameters = {}) {
+    server.emit('cmd', {
+        _type : 'trigger:pm2:action',
+        parameters  : {"name": name},
+        method_name : action
+    });
 }
+
+
+function sendCommand(processId, action, parameters = {}) {
+    server.emit('cmd', {
+        _type : 'trigger:action',
+        process_id  : processId,
+        action_name : action
+    });
+}
+
+
 //monitor.
 
 
